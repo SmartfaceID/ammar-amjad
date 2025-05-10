@@ -59,6 +59,8 @@ def verify_live_face():
             cv2.imwrite(temp_img_path, frame)
 
             result = DeepFace.find(img_path=temp_img_path, db_path="dataset", enforce_detection=True)
+            
+            # إذا تم التعرف على الشخص
             if len(result) > 0:
                 identity_path = result[0].identity.values[0]
                 person_name = os.path.basename(os.path.dirname(identity_path))
@@ -66,8 +68,8 @@ def verify_live_face():
 
                 speak(f"The person has been identified as {person_name}")
 
-                base_dir = "captured_images"
-                person_dir = os.path.join(base_dir, person_name)
+                # تخزين الصورة في مجلد الشخص
+                person_dir = os.path.join("dataset", person_name)
                 os.makedirs(person_dir, exist_ok=True)
 
                 now = datetime.datetime.now()
@@ -78,17 +80,20 @@ def verify_live_face():
                 print(f"[+] Image saved at: {save_path}")
                 detected = True
                 break
+
         except Exception as e:
             print(f"[!] Error during verification: {e}")
 
     cap.release()
     cv2.destroyAllWindows()
 
+    # إذا لم يتم التعرف على الشخص
     if not detected:
-        print("[!] No match found. Saving unknown image.")
+        print("[!] No match found. Saving to 'unknown' folder.")
         speak("No match found")
         
-        unknown_dir = "captured_images/unknown"
+        # مجلد unknown داخل dataset
+        unknown_dir = os.path.join("dataset", "unknown")
         os.makedirs(unknown_dir, exist_ok=True)
 
         now = datetime.datetime.now()
@@ -96,29 +101,29 @@ def verify_live_face():
         save_path = os.path.join(unknown_dir, f"{timestamp}.jpg")
         cv2.imwrite(save_path, frame)
 
-        print(f"[+] Image saved at: {save_path}")
+        print(f"[+] Unknown image saved at: {save_path}")
 
+    # حذف الصورة المؤقتة
     if os.path.exists(temp_img_path):
         os.remove(temp_img_path)
 
 # الدالة الرئيسية لتشغيل البرنامج
 def main():
     while True:
-        print("Choose an option:")
+        print("\nChoose an option:")
         print("1. Verify identity via camera")
+        print("2. Exit")
 
-        choice = input("Enter the appropriate number (1): ")
+        choice = input("Enter the appropriate number: ")
 
         if choice == "1":
             print("[+] Starting identity verification via camera...")
             verify_live_face()
-        else:
-            print("[!] Invalid option. Please try again.")
-
-        continue_choice = input("Do you want to continue (yes/no): ")
-        if continue_choice.lower() != "yes":
+        elif choice == "2":
             print("[!] Program terminated.")
             break
+        else:
+            print("[!] Invalid option. Please try again.")
 
 if __name__ == "__main__":
     main()
